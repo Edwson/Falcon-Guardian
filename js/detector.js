@@ -19,9 +19,7 @@ class PrivacyDetector {
         this.fingerprints = {};
     }
     
-    startDetection() {
-        console.log('Starting privacy detection...');
-        
+    async startDetection() {
         // Hook into various APIs
         this.hookAPIs();
         
@@ -29,69 +27,61 @@ class PrivacyDetector {
         this.monitorNetwork();
         
         // Scan for fingerprinting
-        this.scanForFingerprinting();
+        await this.scanForFingerprinting();
         
         // Check permissions
         this.checkPermissions();
     }
     
+    _addThreat(type, severity) {
+        if (window.falconGuardian && window.falconGuardian.state) {
+            const newThreat = {
+                type: type,
+                severity: severity,
+                timestamp: Date.now(),
+                // Visual properties for the radar
+                angle: Math.random() * Math.PI * 2,
+                distance: 0.2 + Math.random() * 0.7 // Avoid center and edge
+            };
+            window.falconGuardian.state.threats.push(newThreat);
+        }
+    }
+
     hookAPIs() {
+        const self = this;
+
         // Canvas API Hook
         const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
         HTMLCanvasElement.prototype.toDataURL = function(...args) {
-            console.log('Canvas fingerprinting detected!');
-            if (window.falconGuardian && window.falconGuardian.state) {
-                window.falconGuardian.state.threats.push({
-                    type: 'canvas_fingerprint',
-                    timestamp: Date.now(),
-                    severity: 'medium'
-                });
-            }
+            self._addThreat('canvas_fingerprint', 'medium');
             return originalToDataURL.apply(this, args);
         };
         
         // WebGL Hook
         const originalGetParameter = WebGLRenderingContext.prototype.getParameter;
         WebGLRenderingContext.prototype.getParameter = function(...args) {
-            console.log('WebGL fingerprinting detected!');
-            if (window.falconGuardian && window.falconGuardian.state) {
-                window.falconGuardian.state.threats.push({
-                    type: 'webgl_fingerprint',
-                    timestamp: Date.now(),
-                    severity: 'medium'
-                });
-            }
+            self._addThreat('webgl_fingerprint', 'medium');
             return originalGetParameter.apply(this, args);
         };
         
         // AudioContext Hook
-        if (window.AudioContext) {
-            const OriginalAudioContext = window.AudioContext;
-            window.AudioContext = function(...args) {
-                console.log('Audio fingerprinting detected!');
-                if (window.falconGuardian && window.falconGuardian.state) {
-                    window.falconGuardian.state.threats.push({
-                        type: 'audio_fingerprint',
-                        timestamp: Date.now(),
-                        severity: 'low'
-                    });
+        if (window.AudioContext || window.webkitAudioContext) {
+            const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
+            const contextHandler = {
+                construct(target, args) {
+                    self._addThreat('audio_fingerprint', 'low');
+                    return new target(...args);
                 }
-                return new OriginalAudioContext(...args);
             };
+            if(window.AudioContext) window.AudioContext = new Proxy(OriginalAudioContext, contextHandler);
+            if(window.webkitAudioContext) window.webkitAudioContext = new Proxy(OriginalAudioContext, contextHandler);
         }
         
         // Geolocation Hook
         if (navigator.geolocation) {
             const originalGetCurrentPosition = navigator.geolocation.getCurrentPosition;
             navigator.geolocation.getCurrentPosition = function(...args) {
-                console.log('Geolocation access detected!');
-                if (window.falconGuardian && window.falconGuardian.state) {
-                    window.falconGuardian.state.threats.push({
-                        type: 'geolocation_access',
-                        timestamp: Date.now(),
-                        severity: 'high'
-                    });
-                }
+                self._addThreat('geolocation_access', 'high');
                 return originalGetCurrentPosition.apply(this, args);
             };
         }
@@ -100,32 +90,32 @@ class PrivacyDetector {
     monitorNetwork() {
         // Monitor fetch requests
         const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-            const url = args[0];
+        window.fetch = async function(...args) {
+            const url = args[0] instanceof Request ? args[0].url : args[0];
             
             // Check against known tracker domains
             if (this.isTrackerDomain(url)) {
-                console.log('Tracker blocked:', url);
                 if (window.falconGuardian && window.falconGuardian.state) {
                     window.falconGuardian.state.trackers.push({
                         url: url,
                         blocked: true,
                         timestamp: Date.now()
                     });
+                    // a small delay to allow the UI to update, if needed
+                    await new Promise(resolve => setTimeout(resolve, 50));
                 }
                 
                 // Return empty response for blocked trackers
-                return Promise.resolve(new Response('', {status: 204}));
+                return Promise.resolve(new Response(null, {status: 204, statusText: "Blocked by Falcon Guardian"}));
             }
             
-            return originalFetch.apply(this, args);
+            return originalFetch.apply(window, args);
         }.bind(this);
         
         // Monitor XMLHttpRequest
         const originalOpen = XMLHttpRequest.prototype.open;
         XMLHttpRequest.prototype.open = function(method, url, ...args) {
             if (this.isTrackerDomain(url)) {
-                console.log('XHR Tracker blocked:', url);
                 if (window.falconGuardian && window.falconGuardian.state) {
                     window.falconGuardian.state.trackers.push({
                         url: url,
@@ -180,17 +170,17 @@ class PrivacyDetector {
         }
     }
     
-    scanForFingerprinting() {
-        Object.entries(this.detectionMethods).forEach(([method, detector]) => {
+    async scanForFingerprinting() {
+        for (const [method, detector] of Object.entries(this.detectionMethods)) {
             try {
-                const result = detector();
+                const result = await detector();
                 if (result) {
                     this.fingerprints[method] = result;
                 }
             } catch(e) {
                 console.error(`Error detecting ${method}:`, e);
             }
-        });
+        }
     }
     
     detectCanvasFingerprinting() {

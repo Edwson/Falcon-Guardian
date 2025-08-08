@@ -20,18 +20,20 @@ class QuantumEngine {
     }
     
     init() {
-        console.log('Initializing quantum privacy engine...');
         this.initializeQuantumState();
     }
     
     initializeQuantumState() {
         // Initialize quantum-inspired state
+        const qubits = this.generateQubits();
+        const entropy = this.calculateEntropy(qubits); // Pass qubits directly
+
         this.quantumState = {
             superposition: true,
             entanglement: false,
             coherence: 1.0,
-            qubits: this.generateQubits(),
-            entropy: this.calculateEntropy()
+            qubits: qubits,
+            entropy: entropy
         };
     }
     
@@ -48,14 +50,16 @@ class QuantumEngine {
         return qubits;
     }
     
-    calculateEntropy() {
+    calculateEntropy(qubits) {
         // Calculate information entropy for privacy
-        const entropy = this.quantumState.qubits.reduce((sum, qubit) => {
-            const p = qubit.amplitude;
+        if (!qubits) return 0;
+
+        const entropy = qubits.reduce((sum, qubit) => {
+            const p = Math.max(0.0001, Math.min(0.9999, qubit.amplitude)); // Clamp p to avoid log(0)
             return sum - (p * Math.log2(p) + (1 - p) * Math.log2(1 - p));
         }, 0);
         
-        return entropy;
+        return isNaN(entropy) ? 0 : entropy;
     }
     
     quantumRandomGenerator() {
@@ -291,7 +295,7 @@ class QuantumEngine {
         
         return {
             key: key,
-            entropy: this.calculateEntropy(),
+            entropy: this.calculateEntropy(this.quantumState.qubits),
             strength: this.calculateKeyStrength(key)
         };
     }
@@ -318,7 +322,7 @@ class QuantumEngine {
             superposition: this.quantumState.superposition,
             entanglement: this.quantumState.entanglement,
             coherence: this.quantumState.coherence,
-            entropy: this.calculateEntropy(),
+            entropy: this.calculateEntropy(this.quantumState.qubits),
             qubits: this.quantumState.qubits.length
         };
         

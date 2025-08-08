@@ -22,20 +22,26 @@ class Shield {
         };
         
         this.isActive = false;
+        this.mediaAccessBlocked = { camera: false, microphone: false };
     }
     
     activateProtection() {
-        console.log('Activating privacy shield...');
         this.isActive = true;
+
+        this.scrambleFingerprint();
         
         // Apply all protection methods
         Object.values(this.protectionMethods).forEach(method => {
             try {
-                method();
+                if (method.enable) {
+                    method.enable();
+                }
             } catch(e) {
                 console.error('Protection method failed:', e);
             }
         });
+
+        this.patchGetUserMedia();
     }
     
     scrambleFingerprint() {
@@ -86,42 +92,6 @@ class Shield {
         });
     }
     
-    blockWebRTC() {
-        // Block WebRTC to prevent IP leaks
-        const rtcMethods = [
-            'RTCPeerConnection',
-            'webkitRTCPeerConnection',
-            'mozRTCPeerConnection'
-        ];
-        
-        rtcMethods.forEach(method => {
-            if (window[method]) {
-                window[method] = function() {
-                    throw new Error('WebRTC blocked by Falcon Guardian');
-                };
-            }
-        });
-    }
-    
-    spoofCanvas() {
-        // Add noise to canvas fingerprinting
-        const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
-        HTMLCanvasElement.prototype.toDataURL = function(...args) {
-            const canvas = this;
-            const ctx = canvas.getContext('2d');
-            
-            // Add random noise
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < imageData.data.length; i += 4) {
-                imageData.data[i] += Math.random() * 10 - 5;     // Red
-                imageData.data[i+1] += Math.random() * 10 - 5;   // Green
-                imageData.data[i+2] += Math.random() * 10 - 5;   // Blue
-            }
-            ctx.putImageData(imageData, 0, 0);
-            
-            return originalToDataURL.apply(this, args);
-        };
-    }
     
     spoofTimezone() {
         // Randomize timezone
@@ -186,28 +156,20 @@ class Shield {
         }
     }
     
-    blockCamera() {
-        // Block camera access
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
+    patchGetUserMedia() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia && !this.originalFunctions.getUserMedia) {
+            this.originalFunctions.getUserMedia = navigator.mediaDevices.getUserMedia;
+
+            const self = this;
             navigator.mediaDevices.getUserMedia = function(constraints) {
-                if (constraints.video) {
-                    throw new Error('Camera access blocked by Falcon Guardian');
+                if (self.mediaAccessBlocked.camera && constraints && constraints.video) {
+                    return Promise.reject(new Error('Camera access blocked by Falcon Guardian'));
                 }
-                return originalGetUserMedia.apply(this, arguments);
-            };
-        }
-    }
-    
-    blockMicrophone() {
-        // Block microphone access
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
-            navigator.mediaDevices.getUserMedia = function(constraints) {
-                if (constraints.audio) {
-                    throw new Error('Microphone access blocked by Falcon Guardian');
+                if (self.mediaAccessBlocked.microphone && constraints && constraints.audio) {
+                    return Promise.reject(new Error('Microphone access blocked by Falcon Guardian'));
                 }
-                return originalGetUserMedia.apply(this, arguments);
+
+                return self.originalFunctions.getUserMedia.apply(navigator.mediaDevices, arguments);
             };
         }
     }
@@ -229,39 +191,27 @@ class Shield {
     toggleProtection(type, enabled) {
         switch(type) {
             case 'canvas':
-                if (enabled) {
-                    this.spoofCanvas();
-                }
+                if (enabled) this.spoofCanvas();
+                else this.restoreCanvas();
                 break;
             case 'webrtc':
-                if (enabled) {
-                    this.blockWebRTC();
-                }
+                if (enabled) this.blockWebRTC();
+                else this.restoreWebRTC();
                 break;
             case 'geolocation':
-                if (enabled) {
-                    this.blockGeolocation();
-                }
+                // This protection is not currently toggleable from the UI
                 break;
             case 'notifications':
-                if (enabled) {
-                    this.blockNotifications();
-                }
+                // This protection is not currently toggleable from the UI
                 break;
             case 'camera':
-                if (enabled) {
-                    this.blockCamera();
-                }
+                this.mediaAccessBlocked.camera = enabled;
                 break;
             case 'microphone':
-                if (enabled) {
-                    this.blockMicrophone();
-                }
+                this.mediaAccessBlocked.microphone = enabled;
                 break;
             case 'clipboard':
-                if (enabled) {
-                    this.blockClipboard();
-                }
+                // This protection is not currently toggleable from the UI
                 break;
         }
     }
