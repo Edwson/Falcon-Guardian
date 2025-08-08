@@ -1,0 +1,30 @@
+{
+  "name": "falcon-guardian",
+  "version": "1.0.0",
+  "description": "Privacy Intelligence Platform - Real-time detection, prediction, and protection against digital surveillance",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "serve": "npx serve . -p 8000"
+  },
+  "keywords": [
+    "privacy",
+    "security",
+    "fingerprinting",
+    "tracking",
+    "protection",
+    "quantum",
+    "ai",
+    "monitoring"
+  ],
+  "author": "Falcon Guardian Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/falcon-guardian/privacy-platform"
+  },
+  "homepage": "https://falcon-guardian.com"
+}

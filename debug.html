@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falcon Guardian Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>Falcon Guardian Debug</h1>
+    <div id="debug"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `debug ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            document.getElementById('debug').appendChild(div);
+            console.log(message);
+        }
+
+        log('Starting debug...');
+
+        // Test 1: Basic JavaScript
+        try {
+            log('✓ Basic JavaScript working', 'success');
+        } catch (e) {
+            log('✗ Basic JavaScript failed: ' + e.message, 'error');
+        }
+
+        // Test 2: Load modules one by one
+        const modules = [
+            { name: 'detector', file: 'js/detector.js' },
+            { name: 'visualizer', file: 'js/visualizer.js' },
+            { name: 'shield', file: 'js/shield.js' },
+            { name: 'predictor', file: 'js/predictor.js' },
+            { name: 'quantum', file: 'js/quantum.js' },
+            { name: 'core', file: 'js/core.js' }
+        ];
+
+        let loadedModules = 0;
+        
+        modules.forEach((module, index) => {
+            const script = document.createElement('script');
+            script.src = module.file;
+            script.onload = () => {
+                loadedModules++;
+                log(`✓ ${module.name} loaded`, 'success');
+                
+                if (loadedModules === modules.length) {
+                    log('All modules loaded, checking initialization...', 'success');
+                    
+                    // Wait a bit then check if FalconGuardian was created
+                    setTimeout(() => {
+                        if (window.falconGuardian) {
+                            log('✓ FalconGuardian instance created', 'success');
+                            log('State: ' + JSON.stringify(window.falconGuardian.state, null, 2));
+                        } else {
+                            log('✗ FalconGuardian instance not created', 'error');
+                        }
+                    }, 1000);
+                }
+            };
+            script.onerror = () => {
+                log(`✗ ${module.name} failed to load`, 'error');
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>

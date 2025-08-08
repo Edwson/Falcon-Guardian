@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falcon Guardian - Simple Test</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    
+    <link rel="stylesheet" href="vendor/inter/inter.css">
+    <link rel="stylesheet" href="vendor/tabler-icons/tabler-icons.min.css">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Minimal Header -->
+    <header class="header">
+        <div class="container">
+            <div class="brand">
+                <i class="ti ti-shield-check"></i>
+                <span>Falcon Guardian</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-item active" data-view="dashboard">Dashboard</button>
+                <button class="nav-item" data-view="analysis">Analysis</button>
+                <button class="nav-item" data-view="reports">Reports</button>
+                <button class="nav-item" data-view="settings">Settings</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main">
+        <!-- Dashboard View -->
+        <section id="dashboard" class="view active">
+            <!-- Privacy Radar Component -->
+            <div class="privacy-radar-container">
+                <canvas id="privacyRadar"></canvas>
+                <div class="privacy-score-overlay">
+                    <div class="score-value">100</div>
+                    <div class="score-label">Excellent</div>
+                </div>
+            </div>
+            
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <i class="ti ti-eye-off"></i>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Trackers Blocked</div>
+                </div>
+                <div class="metric-card">
+                    <i class="ti ti-fingerprint"></i>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Fingerprints Scrambled</div>
+                </div>
+                <div class="metric-card">
+                    <i class="ti ti-shield"></i>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Threats Detected</div>
+                </div>
+                <div class="metric-card">
+                    <i class="ti ti-activity"></i>
+                    <div class="metric-value">Normal</div>
+                    <div class="metric-label">Activity Status</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Simple test script
+        console.log('Simple test page loaded');
+        
+        // Test navigation
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                console.log('Navigation clicked:', e.target.dataset.view);
+                
+                // Update active state
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+            });
+        });
+        
+        // Test canvas
+        const canvas = document.getElementById('privacyRadar');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // Draw a simple circle
+            ctx.fillStyle = 'var(--ash)';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI * 2);
+            ctx.fill();
+            
+            console.log('Canvas test completed');
+        }
+        
+        // Test metrics update
+        setInterval(() => {
+            const values = document.querySelectorAll('.metric-value');
+            values.forEach((value, index) => {
+                if (index < 3) {
+                    value.textContent = Math.floor(Math.random() * 10);
+                }
+            });
+        }, 3000);
+    </script>
+</body>
+</html>

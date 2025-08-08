@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falcon Guardian - Privacy Intelligence Platform</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    
+    <link rel="stylesheet" href="vendor/inter/inter.css">
+    <link rel="stylesheet" href="vendor/tabler-icons/tabler-icons.min.css">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <i class="ti ti-shield-check loading-icon"></i>
+            <h2>Falcon Guardian</h2>
+            <p>Initializing Privacy Protection...</p>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <div id="statusMessage" style="margin-top: 20px; font-size: 12px; color: var(--graphite);">
+                Loading modules...
+            </div>
+        </div>
+    </div>
+
+    <!-- Minimal Header -->
+    <header class="header">
+        <div class="container">
+            <div class="brand">
+                <i class="ti ti-shield-check"></i>
+                <span>Falcon Guardian</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-item active" data-view="dashboard">Dashboard</button>
+                <button class="nav-item" data-view="analysis">Analysis</button>
+                <button class="nav-item" data-view="reports">Reports</button>
+                <button class="nav-item" data-view="settings">Settings</button>
+            </nav>
+            <button class="mobile-nav-toggle"><i class="ti ti-menu-2"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main">
+        <!-- Dashboard View -->
+        <section id="dashboard" class="view active">
+            <!-- Privacy Radar Component -->
+            <div class="privacy-radar-container">
+                <canvas id="privacyRadar"></canvas>
+                <div class="privacy-score-overlay">
+                    <div class="score-value">0</div>
+                    <div class="score-label">Calculating...</div>
+                </div>
+            </div>
+            
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <i class="ti ti-eye-off"></i>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Trackers Blocked</div>
+                </div>
+                <div class="metric-card">
+                    <i class="ti ti-fingerprint"></i>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Fingerprints Scrambled</div>
+                </div>
+                <div class="metric-card">
+                    <i class="ti ti-shield"></i>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Threats Detected</div>
+                </div>
+                <div class="metric-card">
+                    <i class="ti ti-activity"></i>
+                    <div class="metric-value">Normal</div>
+                    <div class="metric-label">Activity Status</div>
+                </div>
+            </div>
+            
+            <!-- Timeline Component -->
+            <div class="timeline-container">
+                <h2 class="section-title">Privacy Timeline</h2>
+                <canvas id="privacyTimeline"></canvas>
+            </div>
+        </section>
+
+        <!-- Analysis View -->
+        <section id="analysis" class="view">
+            <div class="analysis-grid">
+                <!-- Fingerprint Analysis -->
+                <div class="analysis-card">
+                    <h3>Browser Fingerprint</h3>
+                    <div id="fingerprintDetails"></div>
+                </div>
+                
+                <!-- Network Analysis -->
+                <div class="analysis-card">
+                    <h3>Network Connections</h3>
+                    <div id="networkMap"></div>
+                </div>
+                
+                <!-- Behavior Pattern -->
+                <div class="analysis-card">
+                    <h3>Behavior Pattern</h3>
+                    <canvas id="behaviorPattern"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports View -->
+        <section id="reports" class="view">
+            <div class="reports-container">
+                <h2 class="section-title">Privacy Reports</h2>
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h3>Daily Summary</h3>
+                        <div class="report-content">
+                            <p>No reports generated yet.</p>
+                        </div>
+                    </div>
+                    <div class="report-card">
+                        <h3>Threat Analysis</h3>
+                        <div class="report-content">
+                            <p>No threats detected.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings View -->
+        <section id="settings" class="view">
+            <div class="settings-container">
+                <h2 class="section-title">Privacy Settings</h2>
+                <div class="settings-grid">
+                    <div class="setting-card">
+                        <h3>Protection Level</h3>
+                        <div class="setting-control">
+                            <label>
+                                <input type="checkbox" id="canvasProtection" checked>
+                                Canvas Fingerprint Protection
+                            </label>
+                        </div>
+                        <div class="setting-control">
+                            <label>
+                                <input type="checkbox" id="webrtcProtection" checked>
+                                WebRTC Protection
+                            </label>
+                        </div>
+                        <div class="setting-control">
+                            <label>
+                                <input type="checkbox" id="trackerBlocking" checked>
+                                Tracker Blocking
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-card">
+                        <h3>Appearance</h3>
+                        <div class="setting-control">
+                            <label for="themeSwitcher">Theme</label>
+                            <select id="themeSwitcher">
+                                <option value="auto">Auto</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-card">
+                        <h3>Privacy Score</h3>
+                        <div class="setting-control">
+                            <label>
+                                <input type="checkbox" id="realtimeUpdates" checked>
+                                Real-time Updates
+                            </label>
+                        </div>
+                        <div class="setting-control">
+                            <label>
+                                <input type="checkbox" id="notifications" checked>
+                                Threat Notifications
+                            </label>
+                        </div>
+                        <div class="setting-control">
+                            <label>
+                                <input type="checkbox" id="demoMode">
+                                Demo Mode (Simulate Threats)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- JavaScript Modules -->
+    <script src="js/core.js"></script>
+    <script src="js/detector.js"></script>
+    <script src="js/visualizer.js"></script>
+    <script src="js/shield.js"></script>
+    <script src="js/predictor.js"></script>
+    <script src="js/quantum.js"></script>
+</body>
+</html>
