@@ -56,6 +56,10 @@
                 <div class="privacy-score-overlay">
                     <div class="score-value">0</div>
                     <div class="score-label">Calculating...</div>
+                    <div class="quantum-score-container">
+                        <span class="quantum-score-label">Quantum Score:</span>
+                        <span class="quantum-score-value">...</span>
+                    </div>
                 </div>
             </div>
             
@@ -110,6 +114,13 @@
                     <h3>Behavior Pattern</h3>
                     <canvas id="behaviorPattern"></canvas>
                 </div>
+                <!-- Threat Predictions -->
+                <div class="analysis-card">
+                    <h3>Threat Predictions</h3>
+                    <div id="threatPredictions">
+                        <p>No predictions available.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -155,8 +166,8 @@
                         </div>
                         <div class="setting-control">
                             <label>
-                                <input type="checkbox" id="trackerBlocking" checked>
-                                Tracker Blocking
+                                <input type="checkbox" id="trackerBlocking" checked disabled>
+                                Tracker Blocking (Always On)
                             </label>
                         </div>
                     </div>
@@ -175,8 +186,8 @@
                         <h3>Privacy Score</h3>
                         <div class="setting-control">
                             <label>
-                                <input type="checkbox" id="realtimeUpdates" checked>
-                                Real-time Updates
+                                <input type="checkbox" id="realtimeUpdates" checked disabled>
+                                Real-time Updates (Always On)
                             </label>
                         </div>
                         <div class="setting-control">

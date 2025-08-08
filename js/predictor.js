@@ -11,7 +11,6 @@ class Predictor {
     }
     
     init() {
-        console.log('Initializing privacy predictor...');
         this.loadPredictionModel();
     }
     
@@ -282,7 +281,6 @@ class Predictor {
     trainModel() {
         // In a real implementation, this would use actual ML
         // For now, we use pattern recognition
-        console.log('Training prediction model...');
         
         // Analyze historical patterns
         const patterns = this.extractPatterns();

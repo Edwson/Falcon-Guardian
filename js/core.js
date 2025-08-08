@@ -18,7 +18,8 @@ class FalconGuardian {
             threats: [],
             trackers: [],
             fingerprints: {},
-            isProtected: false
+            isProtected: false,
+            predictions: []
         };
         
         this.demoInterval = null;
@@ -28,72 +29,57 @@ class FalconGuardian {
     }
     
     async init() {
-        console.log('Initializing Falcon Guardian...');
         this.updateStatus('Starting initialization...');
         
         try {
             // Initialize modules
             this.updateStatus('Creating detector module...');
-            console.log('Creating detector module...');
             this.modules.detector = new PrivacyDetector();
             
             this.updateStatus('Creating visualizer module...');
-            console.log('Creating visualizer module...');
             this.modules.visualizer = new Visualizer();
             
             this.updateStatus('Creating predictor module...');
-            console.log('Creating predictor module...');
             this.modules.predictor = new Predictor();
             
             this.updateStatus('Creating shield module...');
-            console.log('Creating shield module...');
             this.modules.shield = new Shield();
             
             this.updateStatus('Creating quantum module...');
-            console.log('Creating quantum module...');
             this.modules.quantum = new QuantumEngine();
             
             // Initialize predictor and quantum modules
             this.updateStatus('Initializing predictor...');
-            console.log('Initializing predictor...');
             this.modules.predictor.init();
             
             this.updateStatus('Initializing quantum engine...');
-            console.log('Initializing quantum engine...');
             this.modules.quantum.init();
             
             // Start monitoring
             this.updateStatus('Starting monitoring...');
-            console.log('Starting monitoring...');
             await this.startMonitoring();
             
             // Initialize UI
             this.updateStatus('Initializing UI...');
-            console.log('Initializing UI...');
             this.initializeUI();
             
             // Start real-time updates
             this.updateStatus('Starting real-time updates...');
-            console.log('Starting real-time updates...');
             this.startRealtimeUpdates();
             
             // Initialize quantum privacy score
             this.updateStatus('Updating quantum score...');
-            console.log('Updating quantum score...');
             this.updateQuantumScore();
             
             // Hide loading screen
             this.updateStatus('Initialization complete!');
-            console.log('Hiding loading screen...');
             this.hideLoadingScreen();
             
-            console.log('Falcon Guardian initialization complete!');
         } catch (error) {
             console.error('Error during initialization:', error);
             this.updateStatus('Error: ' + error.message);
             
             // Fallback: Create basic functionality
-            console.log('Creating fallback functionality...');
             this.createFallbackUI();
             this.startBasicUpdates();
             this.hideLoadingScreen();
@@ -115,50 +101,55 @@ class FalconGuardian {
     async startMonitoring() {
         try {
             // Begin all detection systems
-            console.log('Starting detection...');
-            this.modules.detector.startDetection();
+            await this.modules.detector.startDetection();
             
-            console.log('Activating protection...');
+            // Activate protection
             this.modules.shield.activateProtection();
             
             // Update privacy score
-            console.log('Updating privacy score...');
-            this.updatePrivacyScore();
+            await this.updatePrivacyScore();
         } catch (error) {
             console.error('Error in startMonitoring:', error);
         }
     }
     
-    updatePrivacyScore() {
+    async updatePrivacyScore() {
         // Calculate privacy score based on multiple factors
         const factors = {
             trackers: this.state.trackers.length * -5,
             https: window.location.protocol === 'https:' ? 10 : -20,
-            permissions: this.calculatePermissionScore(),
+            permissions: await this.calculatePermissionScore(),
             fingerprint: this.calculateFingerprintScore()
         };
         
         let score = 100;
-        Object.values(factors).forEach(factor => {
+        for (const factor of Object.values(factors)) {
             score += factor;
-        });
+        }
         
         this.state.privacyScore = Math.max(0, Math.min(100, score));
         this.updateUI('privacyScore', this.state.privacyScore);
     }
     
-    calculatePermissionScore() {
+    async calculatePermissionScore() {
         let score = 0;
         const permissions = ['camera', 'microphone', 'geolocation', 'notifications'];
         
-        permissions.forEach(async (permission) => {
+        for (const permission of permissions) {
             try {
-                const result = await navigator.permissions.query({name: permission});
-                if (result.state === 'granted') score -= 5;
+                // Use a modern approach for permission names
+                const name = permission;
+                if (navigator.permissions) {
+                    const result = await navigator.permissions.query({ name });
+                    if (result.state === 'granted') {
+                        score -= 5;
+                    }
+                }
             } catch(e) {
-                // Permission API not available
+                // Permission API not available or permission denied for query
+                console.warn(`Could not query permission for ${permission}:`, e.message);
             }
-        });
+        }
         
         return score;
     }
@@ -171,15 +162,31 @@ class FalconGuardian {
     }
     
     calculateUniqueness(fingerprint) {
-        // Simplified uniqueness calculation
-        // In production, compare against known fingerprint database
-        return Math.random(); // Placeholder
+        // In a real-world scenario, this would involve comparing the fingerprint
+        // against a large database of known fingerprints to determine its rarity.
+        // For this simulation, we'll create a "uniqueness score" based on a hash
+        // of the fingerprint data. A more complex hash indicates more entropy and uniqueness.
+        const fingerprintString = JSON.stringify(fingerprint);
+        const hash = this._djb2Hash(fingerprintString);
+
+        // Normalize the hash to a value between 0 and 1.
+        // The division factor is arbitrary and chosen to spread the values.
+        const uniqueness = (Math.abs(hash) % 10000) / 10000;
+        return uniqueness;
+    }
+
+    _djb2Hash(str) {
+        let hash = 5381;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) + hash) + char; /* hash * 33 + c */
+        }
+        return hash;
     }
     
     initializeUI() {
         try {
             // Setup navigation
-            console.log('Setting up navigation...');
             document.querySelectorAll('.nav-item').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     this.switchView(e.target.dataset.view);
@@ -187,12 +194,10 @@ class FalconGuardian {
             });
             
             // Initialize visualizations
-            console.log('Initializing visualizations...');
             this.modules.visualizer.initRadar('privacyRadar');
             this.modules.visualizer.initTimeline('privacyTimeline');
             
             // Setup settings controls
-            console.log('Setting up settings...');
             this.initializeSettings();
 
             // Setup mobile navigation
@@ -297,13 +302,9 @@ class FalconGuardian {
         
         // Store theme preference (the selected option, not applied)
         localStorage.setItem('falcon-theme', theme);
-        
-        console.log('Theme updated to:', theme, '| applied:', appliedTheme);
     }
     
     updateSetting(setting, enabled) {
-        console.log(`Setting ${setting} ${enabled ? 'enabled' : 'disabled'}`);
-        
         switch(setting) {
             case 'canvasProtection':
                 this.modules.shield.toggleProtection('canvas', enabled);
@@ -376,6 +377,12 @@ class FalconGuardian {
             networkMap.innerHTML = this.formatNetworkData();
         }
 
+        // Update threat predictions
+        const threatPredictions = document.getElementById('threatPredictions');
+        if (threatPredictions) {
+            threatPredictions.innerHTML = this.formatPredictions(this.state.predictions);
+        }
+
         // Create placeholder for behavior pattern
         const behaviorPattern = document.getElementById('behaviorPattern');
         if(behaviorPattern) {
@@ -407,6 +414,28 @@ class FalconGuardian {
             </div>`;
         });
         
+        html += '</div>';
+        return html;
+    }
+
+    formatPredictions(predictions) {
+        if (!predictions || predictions.length === 0) {
+            return '<p>No predictions available.</p>';
+        }
+
+        let html = '<div class="prediction-list">';
+        predictions.forEach(prediction => {
+            html += `
+                <div class="prediction-item">
+                    <span class="prediction-type ${prediction.severity}">${prediction.type.replace(/_/g, ' ')}</span>
+                    <p class="prediction-message">${prediction.message}</p>
+                    <div class="prediction-meta">
+                        <span>Confidence: ${(prediction.confidence * 100).toFixed(0)}%</span>
+                        <span>Timeframe: ${prediction.timeframe}</span>
+                    </div>
+                </div>
+            `;
+        });
         html += '</div>';
         return html;
     }
@@ -502,13 +531,13 @@ class FalconGuardian {
     
     updateSettingsView() {
         // Settings view is static for now
-        console.log('Settings view updated');
     }
     
     startRealtimeUpdates() {
-        setInterval(() => {
-            this.updatePrivacyScore();
+        setInterval(async () => {
+            await this.updatePrivacyScore();
             this.modules.visualizer.updateRadar(this.state);
+            this.modules.visualizer.updateTimeline();
             this.updateMetrics();
             this.updateQuantumScore();
             this.analyzeThreats();
@@ -517,8 +546,11 @@ class FalconGuardian {
     
     updateQuantumScore() {
         if (this.modules.quantum) {
-            const quantumScore = this.modules.quantum.quantumPrivacyScore();
-            console.log('Quantum Privacy Score:', quantumScore);
+            const quantumScoreData = this.modules.quantum.quantumPrivacyScore();
+            const scoreValueElement = document.querySelector('.quantum-score-value');
+            if (scoreValueElement) {
+                scoreValueElement.textContent = `${quantumScoreData.score} (${quantumScoreData.interpretation})`;
+            }
         }
     }
     
@@ -527,7 +559,21 @@ class FalconGuardian {
             const latestThreat = this.state.threats[this.state.threats.length - 1];
             if (this.modules.predictor) {
                 const analysis = this.modules.predictor.analyzeThreat(latestThreat);
-                console.log('Threat Analysis:', analysis);
+                let predictions = analysis.predictions;
+
+                // Also get the next predicted threat
+                const nextThreatPrediction = this.modules.predictor.predictNextThreat();
+                if (nextThreatPrediction) {
+                    predictions.push({
+                        type: 'next_threat_prediction',
+                        message: `High chance of encountering a ${nextThreatPrediction.predictedType.replace(/_/g, ' ')} threat next.`,
+                        confidence: nextThreatPrediction.confidence,
+                        timeframe: nextThreatPrediction.timeframe,
+                        severity: 'medium' // Assign a default severity for display
+                    });
+                }
+
+                this.state.predictions = predictions; // Store predictions
             }
         }
     }
@@ -540,16 +586,16 @@ class FalconGuardian {
             metricValues[1].textContent = Object.keys(this.state.fingerprints).length;
             metricValues[2].textContent = this.state.threats.length;
             
-            // Update activity status
+            // Update activity status with risk score
             const activityStatus = metricValues[3];
-            if (this.state.threats.length === 0) {
-                activityStatus.textContent = 'Normal';
+            const riskScore = this.modules.predictor.calculateRiskScore();
+            activityStatus.textContent = `${riskScore}/100`;
+
+            if (riskScore < 20) {
                 activityStatus.style.color = 'var(--safe)';
-            } else if (this.state.threats.length < 3) {
-                activityStatus.textContent = 'Warning';
+            } else if (riskScore < 60) {
                 activityStatus.style.color = 'var(--warning)';
             } else {
-                activityStatus.textContent = 'Threat';
                 activityStatus.style.color = 'var(--danger)';
             }
         }
@@ -593,12 +639,14 @@ class FalconGuardian {
         ];
         
         const randomThreat = threatTypes[Math.floor(Math.random() * threatTypes.length)];
-        this.state.threats.push({
-            ...randomThreat,
-            timestamp: Date.now()
-        });
         
-        console.log('Simulated threat:', randomThreat);
+        const newThreat = {
+            ...randomThreat,
+            timestamp: Date.now(),
+            angle: Math.random() * Math.PI * 2,
+            distance: 0.2 + Math.random() * 0.7
+        };
+        this.state.threats.push(newThreat);
     }
     
     // Auto-simulate threats for demo purposes
@@ -623,7 +671,6 @@ class FalconGuardian {
             // Setup basic metrics
             this.updateBasicMetrics();
             
-            console.log('Fallback UI created');
         } catch (error) {
             console.error('Error in fallback UI:', error);
         }
@@ -672,7 +719,6 @@ class FalconGuardian {
 function initializeFalconGuardian() {
     if (!window.falconGuardianInitialized) {
         try {
-            console.log('Initializing Falcon Guardian...');
             window.falconGuardian = new FalconGuardian();
             window.falconGuardianInitialized = true;
         } catch (error) {
@@ -690,7 +736,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Fallback initialization
 window.addEventListener('load', () => {
     if (!window.falconGuardianInitialized) {
-        console.log('Fallback initialization...');
         initializeFalconGuardian();
     }
 });
